@@ -97,5 +97,3 @@ char* create_http_response(const char *status_code, const char *content_type,
 
     return response;
 }
-
-
