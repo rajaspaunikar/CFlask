@@ -1,0 +1,9 @@
+# command: taskset -c 4-7 wrk -t4 -c16 -d30s -H "Connection: close" "http://127.0.0.1:8080/arithmetic/prime?num=1000000007"
+Running 30s test @ http://127.0.0.1:8080/arithmetic/prime?num=1000000007
+  4 threads and 16 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   369.18us  209.57us   8.50ms   95.06%
+    Req/Sec     9.97k   297.52    10.88k    72.84%
+  1193945 requests in 30.10s, 99.06MB read
+Requests/sec:  39666.44
+Transfer/sec:      3.29MB

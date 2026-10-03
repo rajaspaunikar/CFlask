@@ -1,5 +1,5 @@
-#ifndef FUNCTIONSLIST_H
-#define FUNCTIONSLIST_H
+#ifndef FNLIST_H
+#define FNLIST_H
 
 #include "fn.h"
 
@@ -19,4 +19,4 @@ static const cflask_fn function_list[NUM_FUNCTIONS] = {
     [FN_FIBONACCI]  = fn_fibonacci,
 };
 
-#endif /* FUNCTIONSLIST_H */
+#endif /* FNLIST_H */

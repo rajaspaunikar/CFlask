@@ -39,10 +39,15 @@ STYLE = {"s": "--", "t": "-", "m": ":"}
 
 path = sys.argv[1]
 title_url = ""
+loadgen = "wrk"
 series = defaultdict(list)          # config -> [(conc, rps, lat)]
 
 with open(path) as f:
     for line in f:
+        if line.startswith("# loadgen:"):
+            loadgen = line.split(":", 1)[1].strip()
+        elif line.startswith("# client cmd:") and " ab " in line:
+            loadgen = "ab"          # older data files without a loadgen line
         if line.startswith("# url:"):
             title_url = line.split(":", 1)[1].strip().split("127.0.0.1")[-1]
         if line.startswith("#") or not line.strip():
@@ -62,7 +67,7 @@ for cfg in sorted(series, key=order):
 for ax in (ax1, ax2):
     ax.set_xscale("log", base=2)
     ax.set_ylim(bottom=0)
-    ax.set_xlabel("Concurrent requests (ab -c)")
+    ax.set_xlabel(f"Concurrent connections ({loadgen} -c)")
     ax.grid(True, alpha=0.3)
     ax.legend()
 ax1.set_ylabel("Throughput (requests/sec)")

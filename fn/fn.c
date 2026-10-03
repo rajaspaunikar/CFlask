@@ -1,3 +1,8 @@
+/*
+ * functions.c
+ * Implementations of all functions exposed on the web by cflask.
+ * All functions are thread-safe: they only use their arguments and stack.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

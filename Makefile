@@ -14,10 +14,9 @@ all: $(BIN)/cflask
 $(BIN):
 	mkdir -p $(BIN)
 
-# ./bin/cflask s <port> | m <port> <max_threads> | t <port> <num_threads>
+# ./bin/cflask s <port> | m <port> | t <port> <num_threads>
 $(BIN)/cflask: cflask/cflask.c $(COMMON) $(HDRS) | $(BIN)
 	$(CC) $(CFLAGS) -o $@ cflask/cflask.c $(COMMON)
-
 
 clean:
 	rm -rf $(BIN)

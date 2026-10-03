@@ -1,10 +1,10 @@
-#ifndef FUNCTIONS_H
-#define FUNCTIONS_H
+#ifndef FN_H
+#define FN_H
 
 #include <stddef.h>
 
 /*
- * functions.h
+ * fn.h
  * Lists every URL exposed by cflask and associates it with an integer ID.
  * The ID is the index into function_list[] (see functionslist.h).
  *
@@ -63,4 +63,4 @@ void fn_pingpong(const char *query, char *out, size_t outlen);
 void fn_prime(const char *query, char *out, size_t outlen);
 void fn_fibonacci(const char *query, char *out, size_t outlen);
 
-#endif /* FUNCTIONS_H */
+#endif /* FN_H */
