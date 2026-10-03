@@ -2,8 +2,11 @@
 """
 plot.py - draw throughput and response time vs concurrency from a .data file
 
-Usage: python3 scripts/plot.py plots/loadtest1.data
+Usage:  python3 scripts/plot.py plots/loadtest1.data
 Output: plots/loadtest1.jpg (and .png)
+
+Config labels: s = single-threaded, tN = thread pool of N,
+m = thread per request. Old labels (single, N) are also accepted.
 """
 import sys
 from collections import defaultdict
@@ -11,9 +14,32 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+
+def normalize(k):
+    if k == "single":
+        return "s"
+    if k.isdigit():
+        return "t" + k
+    return k
+
+
+def order(k):
+    return ({"s": 0, "m": 1, "t": 2}[k[0]], int(k[1:] or 0))
+
+
+def label(k):
+    if k == "s":
+        return "single-threaded"
+    if k[0] == "t":
+        return f"thread pool = {k[1:]}"
+    return "thread per request"
+
+
+STYLE = {"s": "--", "t": "-", "m": ":"}
+
 path = sys.argv[1]
 title_url = ""
-series = defaultdict(list)          # threads -> [(conc, rps, lat)]
+series = defaultdict(list)          # config -> [(conc, rps, lat)]
 
 with open(path) as f:
     for line in f:
@@ -21,25 +47,21 @@ with open(path) as f:
             title_url = line.split(":", 1)[1].strip().split("127.0.0.1")[-1]
         if line.startswith("#") or not line.strip():
             continue
-        t, c, rps, lat, _ = line.split()
+        cfg, c, rps, lat, _ = line.split()
         if rps == "NA" or lat == "NA":
             continue
-        series[t].append((int(c), float(rps), float(lat)))
-
-def order(k):
-    return (0, 0) if k == "single" else (1, int(k))
+        series[normalize(cfg)].append((int(c), float(rps), float(lat)))
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
-for t in sorted(series, key=order):
-    pts = sorted(series[t])
-    label = "single-threaded" if t == "single" else f"thread pool = {t}"
-    style = "--" if t == "single" else "-"
+for cfg in sorted(series, key=order):
+    pts = sorted(series[cfg])
     xs = [p[0] for p in pts]
-    ax1.plot(xs, [p[1] for p in pts], style, marker="o", label=label)
-    ax2.plot(xs, [p[2] for p in pts], style, marker="o", label=label)
+    ax1.plot(xs, [p[1] for p in pts], STYLE[cfg[0]], marker="o", label=label(cfg))
+    ax2.plot(xs, [p[2] for p in pts], STYLE[cfg[0]], marker="o", label=label(cfg))
 
 for ax in (ax1, ax2):
     ax.set_xscale("log", base=2)
+    ax.set_ylim(bottom=0)
     ax.set_xlabel("Concurrent requests (ab -c)")
     ax.grid(True, alpha=0.3)
     ax.legend()

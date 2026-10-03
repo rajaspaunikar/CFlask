@@ -9,8 +9,11 @@
 #         plots/raw/<name>/*.txt   full ab output of every run
 #
 # Tunables (override via environment):
-#   PORT, N, SERVER_CORES, CLIENT_CORES, THREADS_LIST, CONC_LIST
-#   e.g. N=50000 CONC_LIST="1 4 16 64" ./scripts/run_loadtest.sh ...
+#   PORT, N, SERVER_CORES, CLIENT_CORES, CONFIGS, CONC_LIST
+#   CONFIGS entries:  s     = single-threaded          (./bin/cflask s <port>)
+#                     m     = thread per request        (./bin/cflask m <port>)
+#                     tN    = thread pool of N          (./bin/cflask t <port> N)
+#   e.g. N=50000 CONFIGS="s m t2" ./scripts/run_loadtest.sh ...
 
 set -euo pipefail
 
@@ -21,7 +24,7 @@ PORT=${PORT:-8080}
 N=${N:-100000}
 SERVER_CORES=${SERVER_CORES:-0-1}     # cflask is pinned here
 CLIENT_CORES=${CLIENT_CORES:-4}       # ab is single-threaded: one core is enough
-THREADS_LIST=${THREADS_LIST:-"single 1 2 4 8"}
+CONFIGS=${CONFIGS:-"s m t1 t2 t4 t8"}
 CONC_LIST=${CONC_LIST:-"1 2 4 8 16 32 64 128"}
 
 URL="http://127.0.0.1:${PORT}${URLPATH}"
@@ -31,26 +34,29 @@ DATA=$OUT/$NAME.data
 mkdir -p "$RAW"
 
 command -v ab >/dev/null || { echo "ab not found: sudo apt install apache2-utils"; exit 1; }
-[ -x bin/cflask ] && [ -x bin/cflask_single ] || { echo "run 'make' first"; exit 1; }
+[ -x bin/cflask ] || { echo "run 'make' first"; exit 1; }
 
 {
     echo "# test:          $NAME"
     echo "# url:           $URL"
     echo "# date:          $(date)"
     echo "# host:          $(uname -sr), $(nproc) cpus, $(lscpu | awk -F: '/Model name/ {gsub(/^ +/,"",$2); print $2; exit}')"
-    echo "# server cmd:    taskset -c $SERVER_CORES ./bin/cflask $PORT <threads>   (or ./bin/cflask_single $PORT)"
+    echo "# server cmd:    taskset -c $SERVER_CORES ./bin/cflask <mode> $PORT [threads]"
     echo "# client cmd:    taskset -c $CLIENT_CORES ab -r -n $N -c <concurrency> \"$URL\""
-    echo "# threads:       single = cflask_single (no pool), k = cflask with k workers"
+    echo "# config:        s = single-threaded, m = thread per request, tN = thread pool of N"
     echo "#"
-    echo "# threads concurrency throughput_rps mean_latency_ms failed"
+    echo "# config concurrency throughput_rps mean_latency_ms failed"
 } > "$DATA"
 
-for T in $THREADS_LIST; do
-    if [ "$T" = "single" ]; then
-        SERVER="./bin/cflask_single $PORT"
-    else
-        SERVER="./bin/cflask $PORT $T"
-    fi
+for T in $CONFIGS; do
+    MODE=${T:0:1}
+    NUM=${T:1}
+    case "$MODE" in
+        s|m) SERVER="./bin/cflask $MODE $PORT" ;;
+        t) [ -n "$NUM" ] || { echo "config '$T' needs a thread count, e.g. t4"; exit 1; }
+           SERVER="./bin/cflask t $PORT $NUM" ;;
+        *) echo "unknown config '$T' (use s, m or tN)"; exit 1 ;;
+    esac
 
     echo ">>> [$NAME] server: $SERVER (cores $SERVER_CORES)"
     taskset -c "$SERVER_CORES" $SERVER > /dev/null 2>&1 &

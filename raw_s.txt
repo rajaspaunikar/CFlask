@@ -1,0 +1,24 @@
+== concurrency 1
+    Latency    43.32us   49.03us   4.04ms   99.80%
+Requests/sec:  13119.19
+== concurrency 2
+    Latency    50.42us  109.71us   3.98ms   99.24%
+Requests/sec:  25230.30
+== concurrency 4
+    Latency   259.16us  683.01us   7.18ms   93.08%
+Requests/sec:  30660.90
+== concurrency 8
+    Latency   248.26us  475.78us   8.27ms   96.79%
+Requests/sec:  35546.53
+== concurrency 16
+    Latency   370.40us  287.64us   7.66ms   98.37%
+Requests/sec:  40048.21
+== concurrency 32
+    Latency   715.60us  245.59us   8.20ms   88.84%
+Requests/sec:  42123.22
+== concurrency 64
+    Latency     1.40ms  265.41us  10.40ms   94.40%
+Requests/sec:  43996.22
+== concurrency 128
+    Latency     2.77ms  308.08us  22.17ms   96.75%
+Requests/sec:  45171.53
